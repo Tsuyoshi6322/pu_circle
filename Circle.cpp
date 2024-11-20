@@ -19,27 +19,10 @@
 using namespace std;
 
 /*//================================================================================
-    Definiowanie punktów A,B oraz D,E,F
+    Definiowanie zmiennych punktów jako zbioru współrzędnych
 *///================================================================================
 
-struct PointA {
-    float x; 
-    float y;
-};
-struct PointB {
-    float x; 
-    float y;
-};
-
-struct PointD {
-    float x; 
-    float y;
-};
-struct PointE {
-    float x; 
-    float y;
-};
-struct PointF {
+struct Point {
     float x; 
     float y;
 };
@@ -48,6 +31,8 @@ struct PointF {
     Metody błędów:
         NonNumerErr() - Zła liczba podana jako input
         WrongAngle() - Wartość kąta alpha wykracza poza założenia programu
+        VectorVerifFailed() - WektorDE nie spełnia założeń zadania, 
+            nie jest pięciokrotnie mniejszy od promienia
 *///================================================================================
 
 class ErrorHandlers {
@@ -81,41 +66,26 @@ class ErrorHandlers {
 
 class CalcPointD {
     public:
-    class VectorAB {
-        public:
-        class Basic {
-            public:
-            float x, y, length;
 
-            Basic(const PointA& PointA, const PointB& PointB){
-                x = PointB.x - PointA.x;
-                y = PointB.y - PointA.y;
-                length = sqrt(pow(x,2) + pow(y,2));
+    float x, y, length;
 
-                cout << "BasicAB: " << x << ", " << y << endl;
-                cout << "BasicAB.length: " << length << endl;
-            };
+    void VectorAB(
+        Point A, Point B, float& x, float& y, float length){
+        x = B.x - A.x;
+        y = B.y - A.y;
+        length = sqrt(pow(x,2) + pow(y,2));
+        cout << "BasicAB: (" << x << "),(" << y << ")\n";
+        cout << "BasicAB.length: " << length << endl;
 
-        };
-
-        class Unified {
-            public: 
-            float x, y;
-
-            Unified(Basic& Basic){
-                x = Basic.x / Basic.length;
-                y = Basic.y / Basic.length;
-
-                cout << "UnifiedAB: " << x << ", " << y << endl;
-            };
-        };
+        x = x / length;
+        y = y / length;
+        cout << "UnifiedAB: (" << x << "),(" << y << ")\n";
     };
 
-    CalcPointD(PointD& PointD, const PointA& PointA, float r, VectorAB::Unified& UnifiedVectorAB){
-        PointD.x = PointA.x + (r * UnifiedVectorAB.x);
-        PointD.y = PointA.y + (r * UnifiedVectorAB.y);
-
-        cout << "PointD: " << PointD.x << ", " << PointD.y << endl;
+    void Calculate(Point D, Point A, float r, float x, float y){
+        D.x = A.x + (r * x);
+        D.y = A.y + (r * y);
+        cout << "PointD: (" << D.x << "),(" << D.y << ")\n";
     };
 };
 
@@ -145,60 +115,48 @@ class CalcPointD {
 
 class CalcPointE {
     public:
-    class VectorAD {
-        public:
+
         float x, y, length;
 
-        VectorAD(PointD& PointD, const PointA& PointA){
-            x = PointD.x - PointA.x;
-            y = PointD.y - PointA.y;
+        void VectorAD(float& x, float& y, Point D, Point A, float& length){
+            x = D.x - A.x;
+            y = D.y - A.y;
             length = sqrt(pow(x,2) + pow(y,2));
 
             cout << "VectorAD: " << x << ", " << y << endl;
             cout << "VectorAD.length: " << length << endl;
         };
-    };
 
-    class VectorDE {
-        public:
-        class Basic {
-            public:
-            float x, y, length;
-            Basic(VectorAD& VectorAD, float alpha){
-                x = (VectorAD.x * cos(alpha) - VectorAD.y * sin(alpha)) / (5);
-                y = (VectorAD.x * sin(alpha) + VectorAD.y * cos(alpha)) / (5);
-                length = sqrt(pow(x,2) + pow(y,2));
+        void VectorDE(float& x, float& y, float& alpha, float& length){
+            x = (x * cos(alpha) - y * sin(alpha)) / (5);
+            y = (x * sin(alpha) + y * cos(alpha)) / (5);
+            length = sqrt(pow(x,2) + pow(y,2));
 
-                cout << "BasicDE: " << x << ", " << y << endl;
-                cout << "BasicDE.length: " << length << endl;
-            };
-        };
+            cout << "BasicDE: " << x << ", " << y << endl;
+            cout << "BasicDE.length: " << length << endl;
 
-        float x,y;
-        VectorDE(Basic& Basic){
-            x = -Basic.x;
-            y = -Basic.y;
+            x = -x;
+            y = -y;
 
             cout << "VectorDE: " << x << ", " << y << endl;
         };
 
-        void VectorChecker(Basic& VectorDE, VectorAD& VectorAD){
+        void VectorChecker(float& length, float& r){
             float epsilon = 0.00001;
-            if (fabs((VectorDE.length * 5) - VectorAD.length) < epsilon) {
+            if ((length * 5) == r) {
                 cout << "Vectors verified, DE is 5 times less than AB\n";
             } else {
                 ErrorHandlers ErrHand;
                 ErrHand.VectorVerifFailed();
             };
         };
-    };
 
-    CalcPointE(PointE& PointE, const PointD& PointD, VectorDE& VectorDE){
-        PointE.x = PointD.x + VectorDE.x;
-        PointE.y = PointD.y + VectorDE.y;
+        void Calculate(Point E, const Point D, float& x, float& y){
+            E.x = D.x + x;
+            E.y = D.y + y;
 
-        cout << "PointE: " << PointE.x << ", " << PointE.y << endl;
-    };
+            cout << "PointE: " << E.x << ", " << E.y << endl;
+        };
 };
 
 /*//================================================================================
@@ -229,28 +187,26 @@ class CalcPointE {
 *///================================================================================
 class CalcPointF {
     public:
-    class LinearAB {
-        public:
         float b, m;
-        LinearAB(const PointA& PointA, const PointB& PointB){
-            m = (PointB.y - PointA.y) / (PointB.x - PointA.x);
-            b = PointA.y - (m * PointA.x);
+
+        void LinearAB(Point A, Point B, float& m, float& b){
+            m = (B.y - A.y) / (B.x - A.x);
+            b = A.y - (m * A.x);
 
             cout << "LinearAB m,b: " << m << ", " << b << endl;
         };
-    };
 
-    CalcPointF(PointF& PointF, LinearAB& LinearAB, const PointE& PointE){
-        PointF.x = 
-        ((1 - pow(LinearAB.m,2)) * PointE.x + (2 * LinearAB.m * PointE.y) - (2 * LinearAB.m * LinearAB.b)) 
-        / (1 + pow(LinearAB.m,2));
+        void Calculate(Point E, Point F, float& m, float& b){
+            F.x = 
+            ((1 - pow(m,2)) * E.x + (2 * m * E.y) - (2 * m * b)) 
+            / (1 + pow(m,2));
 
-        PointF.y = 
-        (((pow(LinearAB.m,2) - 1) * PointE.y) + (2 * LinearAB.m * PointE.x) + (2 * LinearAB.b))
-        /(1 + pow(LinearAB.m,2));
+            F.y = 
+            (((pow(m,2) - 1) * E.y) + (2 * m * E.x) + (2 * b))
+            /(1 + pow(m,2));
 
-        cout << "PointF: " << PointF.x << ", " << PointF.y << endl;
-    };
+            cout << "PointF: " << F.x << ", " << F.y << endl;
+        };
 };
 
 int main() {
@@ -258,15 +214,33 @@ int main() {
 // Error Handlery zawarte w klasie ErrorHandlers
 // Przydatne do loopów inputowych, aby użytkownik podał poprawne wartości
     ErrorHandlers ErrHand;
-    ErrHand.NonNumberErr();
-    ErrHand.WrongAngle();
+   // ErrHand.NonNumberErr();
 
 // INPUT ====================================
 // Do przepisania na cin
-    PointA PointA = {2.0f,3.0f};
-    PointB PointB = {4.0f,6.0f};
-    float r = 2.0f; // (nie może być ujemne)
-    float angle = 30.0f; // (angle <10,45>)
+    Point A;
+    cout << "Podaj współrzędne x i y dla Punktu A: ";
+    cin >> A.x >> A.y;
+    
+    Point B;
+    cout << "Podaj współrzędne x i y dla Punktu B: ";
+    cin >> B.x >> B.y;
+    
+    float r; // (nie może być ujemne)
+    cout << "Podaj dłuość r: ";
+    cin >> r;
+        while (r < 0){
+            cout << "Podaj liczbę większą niż 0\n";
+            cin >> r;
+        }
+    
+    float angle; // (angle <10,45>)
+    cout << "Podaj kąt: ";
+    cin >> angle;
+        while (angle < 10 || angle > 45){
+            ErrHand.WrongAngle();
+            cin >> angle;
+        }
 // ==========================================
 
 // Przekształcenie wartości kątowej na radiany 
@@ -275,31 +249,32 @@ int main() {
 // ===========================================
 
 // Wyznaczenie punktu D
-    PointD PointD; 
+    Point D; 
+    CalcPointD CalcPointD;
 
-    CalcPointD::VectorAB::Basic BasicVectorAB(PointA, PointB);
-    CalcPointD::VectorAB::Unified UnifiedVectorAB(BasicVectorAB);
-    CalcPointD calcPointD(PointD, PointA, r, UnifiedVectorAB);
+    CalcPointD.VectorAB(A, B, CalcPointD.x, CalcPointD.y, CalcPointD.length);
+    CalcPointD.Calculate(D, A, r, CalcPointD.x, CalcPointD.y);
 
 // Wyznaczenie Punktu E
-    PointE PointE; 
+    Point E; 
+    CalcPointE CalcPointE;
 
-    CalcPointE::VectorAD VectorAD(PointD, PointA);
-    CalcPointE::VectorDE::Basic BasicVectorDE(VectorAD, alpha);
-    CalcPointE::VectorDE ActualVectorDE(BasicVectorDE);
-    ActualVectorDE.VectorChecker(BasicVectorDE, VectorAD);
-    CalcPointE calcPointE(PointE, PointD, ActualVectorDE);
+    CalcPointE.VectorAD(CalcPointE.x, CalcPointE.y, D, A, CalcPointE.length);
+    CalcPointE.VectorDE(CalcPointE.x, CalcPointE.y, alpha, CalcPointE.length);
+    CalcPointE.VectorChecker(CalcPointE.length, r);
+    CalcPointE.Calculate(E, D, CalcPointE.x, CalcPointE.y);
 
 // Wyznaczenie Punktu F
-    PointF PointF;
+    Point F;
+    CalcPointF CalcPointF;
 
-    CalcPointF::LinearAB LinearAB(PointA, PointB);
-    CalcPointF calcPointF(PointF, LinearAB, PointE);
+    CalcPointF.LinearAB(A, B, CalcPointF.m, CalcPointF.b);
+    CalcPointF.Calculate(E, F, CalcPointF.m, CalcPointF.b);
 
 // Output danych wyjściowych
-    cout << "PointD: (" << PointD.x << ", " << PointD.y << ")" << endl;
-    cout << "PointE: (" << PointE.x << ", " << PointE.y << ")" << endl;
-    cout << "PointF: (" << PointF.x << ", " << PointF.y << ")" << endl;
+    cout << "PointD: (" << D.x << ", " << D.y << ")" << endl;
+    cout << "PointE: (" << E.x << ", " << E.y << ")" << endl;
+    cout << "PointF: (" << F.x << ", " << F.y << ")" << endl;
 
 // KONIEC :DDDDDDD
     return 0;
