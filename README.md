@@ -7,6 +7,7 @@ The task was to calculate the coordinates of the arrow's tip, given the center o
 
 The same goes for coordinates of the points at the end of arrow's wings.
 
+
 ---
 
 ## The Main Functionality
